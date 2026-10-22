@@ -5,8 +5,17 @@ export const portfolio = {
   shortRole: "Full-Stack Developer",
   email: "prithivirajb26@gmail.com",
   phone: "7339044516",
-  github: "",
-  linkedin: "",
+  github: "https://github.com/prithivirajb26",
+  linkedin: "https://www.linkedin.com/in/prithivirajb",
+  contactForm: {
+    action: "https://docs.google.com/forms/d/e/1FAIpQLSe7vZ4IJ2dTsYd2RLsp0U6b8LIzj9utWSYKLaSBl-crkwz3DQ/formResponse",
+    fields: {
+      name: "entry.939003479",
+      email: "entry.1859419155",
+      topic: "entry.279338124",
+      message: "entry.519662132"
+    }
+  },
   resumePath: "/resume/Prithiviraj-B-Resume.pdf",
   summary: "Final-year Computer Science and Engineering student with hands-on experience in full-stack web development and ASP.NET MVC application development. Skilled in React.js, Node.js, Express.js, MySQL, and REST APIs, with project experience in inventory management, examination seating automation, and machine learning-based sentiment analysis. Familiar with database management, version control using Git, and developing web applications to solve practical problems. Seeking an entry-level Full-Stack Developer or Software Developer role.",
   about: [

@@ -132,6 +132,20 @@ body.arrange .obj { touch-action: none; }
 .doodle .hw { position: relative; left: 0; top: 18px; }
 .scrap-note { font-size: 16px; line-height: 22px; }
 .fine { color: var(--mute); font-size: 14px; }
+.message-form { display: grid; gap: 12px; margin: 14px 0 18px; max-width: 520px; }
+.message-form label { display: grid; gap: 5px; font: 700 13px var(--font); color: var(--ink); }
+.message-form input,
+.message-form select,
+.message-form textarea {
+  width: 100%;
+  font: 600 14px var(--font);
+  color: var(--ink);
+  background: var(--paper2, #fff);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.message-form textarea { min-height: 120px; resize: vertical; }
 .resume-note { padding: 0 28px 16px; }
 .sheet img { width: 100%; border-radius: 12px; }
 .status-pill {

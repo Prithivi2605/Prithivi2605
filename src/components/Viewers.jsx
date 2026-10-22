@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { activeProjects, portfolio } from "../data/portfolio.js";
 import { ObjectFace } from "./ObjectFace.jsx";
 
@@ -208,10 +209,50 @@ function ResumeViewer({ onDownload }) {
 
 function ContactViewer() {
   const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(portfolio.email);
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const form = portfolio.contactForm;
+
+  async function onSubmit(event) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const body = new FormData();
+    Object.entries(form.fields).forEach(([key, entry]) => {
+      if (entry) body.append(entry, String(data.get(key) || ""));
+    });
+    setSending(true);
+    fetch(form.action, { method: "POST", mode: "no-cors", body }).catch(() => {});
+    setSent(true);
+    setSending(false);
+  }
+
   return (
     <div className="vb pg">
       <div className="sheet">
-        <p>Email and phone are the ways to reach me.</p>
+        <p>Send a message here.</p>
+        {sent ? <p><b>Message sent. Thank you.</b></p> : (
+          <form className="message-form" onSubmit={onSubmit}>
+            <label>Your name
+              <input name="name" type="text" autoComplete="name" required maxLength={120} />
+            </label>
+            <label>Your email
+              <input name="email" type="email" autoComplete="email" required maxLength={160} />
+            </label>
+            <label>What is this about?
+              <select name="topic" required defaultValue="">
+                <option value="" disabled>Choose one</option>
+                <option>Job or Internship</option>
+                <option>Project collaboration</option>
+                <option>Just saying hello</option>
+                <option>Something else</option>
+              </select>
+            </label>
+            <label>Message
+              <textarea name="message" required maxLength={2000} />
+            </label>
+            <p><button type="submit" className="btn p" disabled={sending}>{sending ? "Sending…" : "Send message"}</button></p>
+          </form>
+        )}
         {email ? <p><a className="btn p" href={`mailto:${portfolio.email}`}>{portfolio.email}</a></p> : null}
         {portfolio.phone ? <p><a className="btn" href={`tel:${portfolio.phone}`}>{portfolio.phone}</a></p> : null}
         <p className="link-row">
