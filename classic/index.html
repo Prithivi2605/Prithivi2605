@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prithiviraj B | Software Developer</title>
+<meta name="description" content="Prithiviraj B is a software developer and final-year engineering student at KCT, Coimbatore. Explore projects such as Merchant Mind, Resume Analyzer, and a line-following robot, plus an internship at BINI.">
+<meta name="theme-color" content="#f1f2f5">
+<meta property="og:title" content="Prithiviraj B | Software Developer">
+<meta property="og:description" content="Software developer and final-year engineering student at KCT, Coimbatore. An interactive desk portfolio of projects, skills, and experience.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_IN">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Caveat:wght@600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/desk.css">
+<link rel="stylesheet" href="css/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Prithiviraj B",
+  "jobTitle": "Software Developer",
+  "affiliation": {
+    "@type": "CollegeOrUniversity",
+    "name": "KCT, Coimbatore"
+  }
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#intro">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="#intro">Prithiviraj B <span>Software Developer</span></a>
+  <button type="button" class="btn" id="navToggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+  <nav id="site-nav" aria-label="Portfolio">
+    <a href="#desk">Desk</a>
+    <a href="#about">About</a>
+    <a href="#skills">Skills</a>
+    <a href="#projects">Projects</a>
+    <a href="#experience">Experience</a>
+    <a href="#education">Education</a>
+    <a href="#achievements" id="nav-achievements" hidden>Achievements</a>
+    <a href="#resume">Resume</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <button type="button" class="btn" id="themeBtn" aria-pressed="false">Dark theme</button>
+</header>
+
+<main>
+  <section class="band" id="intro" aria-labelledby="intro-title"></section>
+
+  <section id="desk" aria-labelledby="desk-title">
+    <div class="desk-intro">
+      <h2 id="desk-title">Interactive desk</h2>
+      <p>Drag a page and click it to read it, or use the menu above if you would rather jump to a section. The lamp switches light and dark. Drop an item in the dustbin to set it aside, or shake the bin to clear the desk and shake it again to restore everything.</p>
+    </div>
+    <p id="arrangeNote" hidden>Move mode is on. Drag items with your finger, then turn Move items off to scroll the page normally.</p>
+    <div id="wrap"><div id="stage"></div></div>
+  </section>
+
+  <section class="band" id="about" aria-labelledby="about-title"></section>
+  <section class="band" id="skills" aria-labelledby="skills-title"></section>
+  <section class="band" id="projects" aria-labelledby="projects-title"></section>
+  <section class="band" id="experience" aria-labelledby="experience-title"></section>
+  <section class="band" id="education" aria-labelledby="education-title"></section>
+  <section class="band" id="achievements" aria-labelledby="achievements-title" hidden></section>
+  <section class="band" id="resume" aria-labelledby="resume-title"></section>
+  <section class="band" id="contact" aria-labelledby="contact-title"></section>
+</main>
+
+<footer class="site-footer" id="site-footer"></footer>
+
+<div id="veil"></div>
+<div id="panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"></div>
+<div class="drawer" id="drw" role="group" aria-label="Filter desk objects"></div>
+<div class="tb" role="toolbar" aria-label="Desk tools">
+  <button type="button" id="bMenu" aria-expanded="false" aria-controls="drw">Browse</button>
+  <button type="button" id="bArrange" hidden aria-pressed="false">Move items</button>
+  <button type="button" id="bStory">Quick tour</button>
+  <label>Find <input id="q" type="search" placeholder="Find something…  ( / )" autocomplete="off" aria-label="Find something on the desk"></label>
+  <button type="button" id="bReset">Reset desk</button>
+  <button type="button" id="bOrg">Organize</button>
+  <button type="button" id="bSk">Skills</button>
+</div>
+
+<noscript>
+  <div class="band">
+    <h1>Prithiviraj B</h1>
+    <p>Software developer and final-year engineering student at KCT, Coimbatore. This portfolio needs JavaScript for the interactive desk, project details, and contact form.</p>
+  </div>
+</noscript>
+
+<script src="js/config.js"></script>
+<script src="js/desk-data.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/site.js"></script>
+<script src="js/bin-shake.js"></script>
+<script src="js/mug-spill.js"></script>
+<script src="js/desk-sfx.js"></script>
+</body>
+</html>
