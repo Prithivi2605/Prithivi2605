@@ -10,24 +10,42 @@ import { ViewerBody, viewerKind, viewerTitle } from "./Viewers.jsx";
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+function viewportWidth() {
+  return document.documentElement.clientWidth || window.innerWidth;
+}
+
 export function Desk({ dark, onToggleTheme }) {
   const itemsRef = useRef(null);
-  if (!itemsRef.current) itemsRef.current = createDesk();
+  const bootRef = useRef(null);
+  if (!bootRef.current) {
+    const items = createDesk();
+    const viewport = viewportWidth();
+    const phone = viewport < 720;
+    const laid = phone ? organize(items, true) : null;
+    itemsRef.current = items;
+    bootRef.current = {
+      phone,
+      viewport,
+      labels: laid ? laid.labels : messyLabels(),
+      height: laid ? laid.height : MESSY_H,
+      organized: phone
+    };
+  }
   const wrapRef = useRef(null);
   const stageRef = useRef(null);
-  const scaleRef = useRef(1);
+  const scaleRef = useRef(bootRef.current.viewport / (bootRef.current.phone ? 640 : DESK_W));
   const arrangeRef = useRef(false);
   const closeRef = useRef(null);
   const openerRef = useRef(null);
   const [version, setVersion] = useState(0);
-  const [scale, setScale] = useState(1);
-  const [narrow, setNarrow] = useState(() => window.innerWidth < 720);
-  const [height, setHeight] = useState(MESSY_H);
-  const heightRef = useRef(MESSY_H);
+  const [scale, setScale] = useState(() => scaleRef.current);
+  const [narrow, setNarrow] = useState(() => bootRef.current.phone);
+  const [height, setHeight] = useState(() => bootRef.current.height);
+  const heightRef = useRef(bootRef.current.height);
   heightRef.current = height;
   const toastTimer = useRef(0);
-  const [labels, setLabels] = useState(() => messyLabels());
-  const [organized, setOrganized] = useState(false);
+  const [labels, setLabels] = useState(() => bootRef.current.labels);
+  const [organized, setOrganized] = useState(() => bootRef.current.organized);
   const [arrange, setArrange] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Everything");
@@ -41,10 +59,10 @@ export function Desk({ dark, onToggleTheme }) {
   const heardRef = useRef(null);
   const [soundOn, setSoundOn] = useState(() => soundIsOn());
   const [resumeNote, setResumeNote] = useState("");
-  const [stageW, setStageW] = useState(() => (window.innerWidth < 720 ? 640 : DESK_W));
-  const stageWRef = useRef(stageW);
+  const [stageW, setStageW] = useState(() => (bootRef.current.phone ? 640 : DESK_W));
+  const stageWRef = useRef(bootRef.current.phone ? 640 : DESK_W);
   const organizedRef = useRef(false);
-  const phoneLayout = useRef(false);
+  const phoneLayout = useRef(bootRef.current.phone);
   const desktopOrganized = useRef(false);
   organizedRef.current = organized;
 
@@ -72,12 +90,12 @@ export function Desk({ dark, onToggleTheme }) {
 
   useEffect(() => {
     const fit = () => {
-      const nextNarrow = window.innerWidth < 720;
+      const viewport = viewportWidth();
+      const nextNarrow = viewport < 720;
       setNarrow(nextNarrow);
       document.body.classList.toggle("m", nextNarrow);
       const nextStage = nextNarrow ? 640 : DESK_W;
-      const width = wrapRef.current?.clientWidth || window.innerWidth;
-      const nextScale = width / nextStage;
+      const nextScale = viewport / nextStage;
       stageWRef.current = nextStage;
       scaleRef.current = nextScale;
       setStageW(nextStage);

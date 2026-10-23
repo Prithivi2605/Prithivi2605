@@ -27,7 +27,7 @@ export function organize(items, narrow) {
   const width = narrow ? 580 : 1300;
   const gap = narrow ? 16 : 24;
   const x0 = narrow ? 30 : 50;
-  let y = narrow ? 92 : 70;
+  let y = narrow ? 156 : 70;
   const labels = [];
 
   order.forEach((category) => {
@@ -54,12 +54,11 @@ export function organize(items, narrow) {
   });
 
   const lamp = items.find((item) => item.themeLamp);
-  const resume = items.find((item) => item.id === "resume");
-  if (lamp) {
+  if (lamp && !narrow) {
     lamp.off = false;
     lamp.r = 0;
-    lamp.x = narrow ? Math.min((resume ? resume.x + resume.w + 4 : 40), 640 - lamp.w - 2) : 1110;
-    lamp.y = narrow ? (resume ? resume.y + 4 : 80) : 72;
+    lamp.x = 1110;
+    lamp.y = 72;
   }
 
   const bin = items.find((item) => item.isDustbin);
@@ -69,7 +68,7 @@ export function organize(items, narrow) {
     bin.r = 0;
     bin.x = x0 + width - bin.w;
     bin.y = y + 12;
-    bottom = bin.y + bin.h + 72;
+    bottom = bin.y + bin.h + (narrow ? 210 : 72);
   }
 
   items.forEach((item) => {
@@ -80,10 +79,21 @@ export function organize(items, narrow) {
   const mug = items.find((item) => item.id === "mug");
   if (mug) {
     mug.off = false;
-    mug.r = narrow ? -6 : 8;
-    mug.x = narrow ? x0 : 1288;
-    mug.y = bin ? bin.y + (narrow ? 8 : 0) : y;
-    if (!narrow) mug.y = 72;
+    if (narrow && bin) {
+      mug.r = -6;
+      mug.x = Math.max(x0, bin.x - mug.w - 16);
+      mug.y = bin.y + 16;
+    } else {
+      mug.r = 8;
+      mug.x = 1288;
+      mug.y = 72;
+    }
+  }
+  if (lamp && narrow && bin) {
+    lamp.off = false;
+    lamp.r = 0;
+    lamp.x = x0;
+    lamp.y = bin.y;
   }
 
   return { labels, height: Math.max(bottom, narrow ? y + 220 : 1510) };
