@@ -353,7 +353,7 @@ export function ObjectFace({ item, dark, binCount }) {
         <div className="tape" />
         <div className="face"><div className="skcard pp">
           <b>Skills</b>
-          <div className="skill-lines">✓ Frontend<br />✓ Backend<br />✓ Database<br />✓ Fundamentals</div>
+          <div className="skill-lines">✓ Frontend<br />✓ Backend<br />✓ Database<br />✓ Fundamentals<br />✓ Tools</div>
         </div></div>
       </>
     );

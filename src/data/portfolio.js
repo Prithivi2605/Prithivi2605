@@ -4,6 +4,7 @@ export function skillWord(name) {
   if (name === "React.js") return "Frontend";
   if (["Node.js", "Express.js", "ASP.NET MVC", "REST APIs"].includes(name)) return "Backend";
   if (name === "MySQL" || name === "MongoDB" || name.includes("Database Management")) return "Database";
+  if (name === "Git" || name === "GitHub" || name === "Firebase" || name === "AWS" || name === "Microsoft Azure" || name === "Docker") return "Tools";
   return "Fundamentals";
 }
 export const portfolio = {
