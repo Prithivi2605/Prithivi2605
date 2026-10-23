@@ -39,7 +39,7 @@ function frames(item, tx, ty, scale) {
       { transform: `translate(${tx}px, ${ty}px) rotate(0deg) scale(${scale})` }
     ];
   }
-  if (item.kind === "sticky" || item.kind === "notes" || item.kind === "field") {
+  if (item.kind === "sticky" || item.kind === "notes" || item.kind === "field" || item.kind === "folded") {
     return [
       { transform: `translate(0px, 0px) rotate(${tilt}deg) scale(1)` },
       { transform: `translate(${tx * 0.06}px, ${-hop}px) rotate(${tilt + spin}deg) scale(1.16)`, offset: 0.24 },
@@ -64,7 +64,7 @@ export function flyDuration(item) {
   if (item.kind === "postcard") return 680;
   if (item.kind === "project") return 620;
   if (item.kind === "laptop") return 520;
-  if (item.kind === "sticky" || item.kind === "notes" || item.kind === "field") return 480;
+  if (item.kind === "sticky" || item.kind === "notes" || item.kind === "field" || item.kind === "folded") return 480;
   return 560;
 }
 

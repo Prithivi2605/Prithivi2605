@@ -10,9 +10,6 @@ export function Toolbar({
   onReset,
   onSkills,
   onTour,
-  showMove,
-  arrange,
-  onArrange,
   soundOn,
   onSound
 }) {
@@ -31,9 +28,6 @@ export function Toolbar({
           <button type="button" id="bSfx" aria-pressed={soundOn} onClick={onSound}>{soundOn ? "Sound on" : "Sound off"}</button>
         )}
       </label>
-      {showMove && (
-        <button type="button" id="bArrange" aria-pressed={arrange} onClick={onArrange}>{arrange ? "Done moving" : "Move items"}</button>
-      )}
       <button type="button" id="bReset" onClick={onReset}>Reset desk</button>
       <button type="button" id="bOrg" className={organized ? "on" : ""} onClick={onOrganize}>{organized ? "Messy mode" : "Organize"}</button>
       <button type="button" id="bSk" onClick={onSkills}>Skills</button>

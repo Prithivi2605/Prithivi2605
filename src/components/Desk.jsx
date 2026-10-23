@@ -43,19 +43,16 @@ export function Desk({ dark, onToggleTheme }) {
   const wrapRef = useRef(null);
   const stageRef = useRef(null);
   const scaleRef = useRef(bootRef.current.scale);
-  const arrangeRef = useRef(false);
   const closeRef = useRef(null);
   const openerRef = useRef(null);
   const [version, setVersion] = useState(0);
   const [scale, setScale] = useState(() => scaleRef.current);
-  const [narrow, setNarrow] = useState(() => bootRef.current.phone);
   const [height, setHeight] = useState(() => bootRef.current.height);
   const heightRef = useRef(bootRef.current.height);
   heightRef.current = height;
   const toastTimer = useRef(0);
   const [labels, setLabels] = useState(() => bootRef.current.labels);
   const [organized, setOrganized] = useState(() => bootRef.current.organized);
-  const [arrange, setArrange] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Everything");
   const [browseOpen, setBrowseOpen] = useState(false);
@@ -95,11 +92,6 @@ export function Desk({ dark, onToggleTheme }) {
     stageRef.current.style.setProperty("--lamp-y", `${lamp.y + lamp.h * 0.28}px`);
   }
 
-  useEffect(() => {
-    arrangeRef.current = arrange;
-    document.body.classList.toggle("arrange", arrange);
-  }, [arrange]);
-
   function applyFit() {
     const viewport = viewportWidth();
     const nextNarrow = viewport < 720;
@@ -110,7 +102,6 @@ export function Desk({ dark, onToggleTheme }) {
       refresh();
     }
     wasNarrow.current = nextNarrow;
-    setNarrow(nextNarrow);
     document.body.classList.toggle("m", nextNarrow);
     const next = deskFit(viewport, nextNarrow, organizedRef.current);
     stageWRef.current = next.stage;
@@ -635,7 +626,6 @@ export function Desk({ dark, onToggleTheme }) {
               scaleRef={scaleRef}
               stageWidthRef={stageWRef}
               heightRef={heightRef}
-              arrangeRef={arrangeRef}
               layoutVersion={version}
               onOpen={openItem}
               onBinHover={onBinHover}
@@ -660,9 +650,6 @@ export function Desk({ dark, onToggleTheme }) {
         onReset={resetDesk}
         onSkills={() => { const card = itemsRef.current.find((item) => item.id === "skillcard"); if (card?.inBin) restore(card); scrollToItem(card); }}
         onTour={() => showTour(0)}
-        showMove={narrow || window.matchMedia("(pointer: coarse)").matches}
-        arrange={arrange}
-        onArrange={() => setArrange((value) => !value)}
         soundOn={soundOn}
         onSound={() => setSoundOn(toggleSound())}
       />

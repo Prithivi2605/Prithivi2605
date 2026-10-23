@@ -24,6 +24,7 @@ export function createDesk() {
   add(items, { id: "about", name: "About me", cat: "Personal", lv: 1, x: 18, y: 36, w: 210, h: 270, r: -11, kind: "about", viewer: "about" });
   add(items, { id: "resume", name: "Resume", cat: "Documents", lv: 0, x: 168, y: 78, w: 280, h: 390, r: 6, kind: "resume", viewer: "resume" });
   add(items, { id: "sticky", name: "Desk note", cat: "Personal", lv: 3, x: 430, y: 12, w: 168, h: 140, r: 9, kind: "sticky", viewer: "note", note: "A reminder on the desk: I would rather ship something a person can use than polish an idea that stays in a notebook." });
+  add(items, { id: "folded", name: "Folded note", cat: "Personal", lv: 3, x: 1168, y: 36, w: 74, h: 58, r: 12, kind: "folded", viewer: "note", note: "Prithiviraj B. Final-year B.E. Computer Science and Engineering, Kumaraguru College of Technology, Coimbatore, 2023–2027. Open to an entry-level Full-Stack Developer role." });
   add(items, { id: "notes", name: "Learning notes", cat: "Interests", lv: 1, x: 548, y: 128, w: 250, h: 210, r: -8, kind: "notes", viewer: "note", note: portfolio.interests.join(", ") });
   add(items, { id: "lamp", name: "Desk lamp", cat: "Decor", lv: 4, x: 742, y: 48, w: 150, h: 210, r: -7, kind: "lamp", themeLamp: true, viewer: "note", note: "Click the lamp to switch between light and dark. Drag it if you want it somewhere else." });
   add(items, { id: "mail", name: "Envelope", cat: "Contact", lv: 2, x: 890, y: 96, w: 250, h: 150, r: 8, kind: "mail", viewer: "contact" });

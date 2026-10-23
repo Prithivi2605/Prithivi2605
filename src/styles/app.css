@@ -13,8 +13,7 @@
 
 #hero { z-index: 80; max-width: calc(100% - 16px); }
 
-.obj { touch-action: pan-y; }
-body.arrange .obj, #obj-mug, #obj-dustbin { touch-action: none; }
+.obj { touch-action: none; }
 .skcard .skill-lines { white-space: normal; }
 
 #panel.open {
@@ -161,6 +160,8 @@ body.arrange .obj, #obj-mug, #obj-dustbin { touch-action: none; }
 .reach-row a:not(.btn) { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; word-break: break-word; }
 .reach-row .btn { justify-self: start; }
 .reach-row em { color: var(--mute); font-style: normal; }
+.pr .btn { margin-left: auto; flex: none; }
+.laptop-end { margin: 18px 0 0; }
 .cert-photo { padding: 0; background: #fbf6e7; }
 .cert-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .cert-view { display: block; width: min(100%, 640px); margin: 0 0 16px; border-radius: 6px; }

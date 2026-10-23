@@ -71,5 +71,5 @@
   .message-form textarea { font-size: 16px; }
   .vb.pg { padding: 12px; }
   #binToast { top: 12px; max-width: calc(100% - 24px); }
-  .obj { touch-action: manipulation; }
+  .obj { touch-action: none; }
 }

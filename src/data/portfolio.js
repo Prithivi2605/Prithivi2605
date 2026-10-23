@@ -138,8 +138,8 @@ export const portfolio = {
         "Implemented low-stock notification functionality to help identify products requiring replenishment."
       ],
       stack: ["React.js", "Node.js", "Express.js", "MySQL"],
-      github: "",
-      demo: "",
+      github: "https://github.com/prithivirajb26/MerchantMind",
+      demo: "https://github.com/prithivirajb26/MerchantMind",
       image: "",
       status: "",
       accent: "#1f7a4d",
@@ -188,8 +188,8 @@ export const portfolio = {
         "Built a Flask backend and React.js interface to process text input and display predictions, confidence scores, and influential keywords."
       ],
       stack: ["Python", "Flask", "React.js", "Hugging Face Tokenizers", "Scikit-learn"],
-      github: "",
-      demo: "",
+      github: "https://github.com/prithivirajb26/Sentimental-Analysis",
+      demo: "https://github.com/prithivirajb26/Sentimental-Analysis",
       image: "",
       status: "",
       accent: "#8a3d62",

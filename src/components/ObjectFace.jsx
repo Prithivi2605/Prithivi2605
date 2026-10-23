@@ -126,6 +126,13 @@ export function ObjectFace({ item, dark, binCount }) {
       </div>
     );
   }
+  if (item.kind === "folded") {
+    return (
+      <div className="face">
+        <div className="paper pp" style={{ padding: 0, background: "linear-gradient(135deg,#fff 50%,#ece9dd 50%)", display: "grid", placeItems: "center", font: "800 22px var(--serif)", color: "#e0455a" }}>?</div>
+      </div>
+    );
+  }
   if (item.kind === "sticky") {
     return <div className="face"><div className="sticky"><span>Solve practical</span><span>problems.</span><span>Write it down ✦</span></div></div>;
   }

@@ -121,15 +121,22 @@ function LaptopViewer() {
   return (
     <div className="vb pg">
       <div className="sheet">
-        {activeProjects.map((project) => (
-          <div className="pr" key={project.id}>
-            <i style={{ background: `linear-gradient(135deg, ${project.c1}, ${project.c2})` }} />
-            <div>
-              <b>{project.name}</b>
-              <span>{project.subtitle} · {project.stack.slice(0, 3).join(", ")}</span>
+        {activeProjects.map((project) => {
+          const live = isHttp(project.demo) ? project.demo : isHttp(project.github) ? project.github : "";
+          return (
+            <div className="pr" key={project.id}>
+              <i style={{ background: `linear-gradient(135deg, ${project.c1}, ${project.c2})` }} />
+              <div>
+                <b>{project.name}</b>
+                <span>{project.subtitle} · {project.stack.slice(0, 3).join(", ")}</span>
+              </div>
+              {live ? <a className="btn p" href={live} target="_blank" rel="noopener noreferrer">Live project</a> : null}
             </div>
-          </div>
-        ))}
+          );
+        })}
+        <p className="link-row laptop-end">
+          <a className="btn" href={portfolio.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+        </p>
       </div>
     </div>
   );

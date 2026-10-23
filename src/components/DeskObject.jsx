@@ -3,7 +3,7 @@ import { DESK_W, MESSY_H } from "../utils/layout.js";
 import { playDrop, playHover, playLift, slideMove, slideStart, slideStop, unlockSound } from "../utils/sfx.js";
 import { ObjectFace } from "./ObjectFace.jsx";
 
-export function DeskObject({ item, dark, binCount, scaleRef, stageWidthRef, heightRef, arrangeRef, layoutVersion, stains = [], onOpen, onBinHover, onShake, onDrop }) {
+export function DeskObject({ item, dark, binCount, scaleRef, stageWidthRef, heightRef, layoutVersion, stains = [], onOpen, onBinHover, onShake, onDrop }) {
   const ref = useRef(null);
   const drag = useRef(null);
   const shakeRef = useRef({ ax: { d: 0, seg: 0, opp: 0 }, ay: { d: 0, seg: 0, opp: 0 }, last: null, rev: [], cool: 0 });
@@ -30,11 +30,7 @@ export function DeskObject({ item, dark, binCount, scaleRef, stageWidthRef, heig
   function onPointerDown(event) {
     unlockSound();
     if (item.off) return;
-    const touch = event.pointerType === "touch" || event.pointerType === "pen";
-    if (touch && !arrangeRef.current && item.id !== "mug" && !item.isDustbin) {
-      drag.current = { tap: true, x: event.clientX, y: event.clientY };
-      return;
-    }
+    if (event.pointerType === "touch" || event.pointerType === "pen") event.preventDefault();
     if (item.isDustbin || item.id === "mug") {
       shakeRef.current.last = { x: event.clientX, y: event.clientY };
       shakeRef.current.rev = [];
