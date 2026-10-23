@@ -14,6 +14,12 @@ function viewportWidth() {
   return document.documentElement.clientWidth || window.innerWidth;
 }
 
+function deskFit(viewport, phone, organized) {
+  if (phone && organized) return { stage: 640, scale: viewport / 640 };
+  if (phone) return { stage: DESK_W, scale: Math.max(viewport / DESK_W, 0.5) };
+  return { stage: DESK_W, scale: viewport / DESK_W };
+}
+
 export function Desk({ dark, onToggleTheme }) {
   const itemsRef = useRef(null);
   const bootRef = useRef(null);
@@ -21,19 +27,21 @@ export function Desk({ dark, onToggleTheme }) {
     const items = createDesk();
     const viewport = viewportWidth();
     const phone = viewport < 720;
-    const laid = phone ? organize(items, true) : null;
+    const fit = deskFit(viewport, phone, false);
     itemsRef.current = items;
     bootRef.current = {
       phone,
       viewport,
-      labels: laid ? laid.labels : messyLabels(),
-      height: laid ? laid.height : MESSY_H,
-      organized: phone
+      labels: messyLabels(),
+      height: MESSY_H,
+      organized: false,
+      stage: fit.stage,
+      scale: fit.scale
     };
   }
   const wrapRef = useRef(null);
   const stageRef = useRef(null);
-  const scaleRef = useRef(bootRef.current.viewport / (bootRef.current.phone ? 640 : DESK_W));
+  const scaleRef = useRef(bootRef.current.scale);
   const arrangeRef = useRef(false);
   const closeRef = useRef(null);
   const openerRef = useRef(null);
@@ -59,11 +67,10 @@ export function Desk({ dark, onToggleTheme }) {
   const heardRef = useRef(null);
   const [soundOn, setSoundOn] = useState(() => soundIsOn());
   const [resumeNote, setResumeNote] = useState("");
-  const [stageW, setStageW] = useState(() => (bootRef.current.phone ? 640 : DESK_W));
-  const stageWRef = useRef(bootRef.current.phone ? 640 : DESK_W);
+  const [stageW, setStageW] = useState(() => bootRef.current.stage);
+  const stageWRef = useRef(bootRef.current.stage);
   const organizedRef = useRef(false);
-  const phoneLayout = useRef(bootRef.current.phone);
-  const desktopOrganized = useRef(false);
+  const wasNarrow = useRef(bootRef.current.phone);
   organizedRef.current = organized;
 
   function refresh() {
@@ -88,19 +95,27 @@ export function Desk({ dark, onToggleTheme }) {
     document.body.classList.toggle("arrange", arrange);
   }, [arrange]);
 
+  function applyFit() {
+    const viewport = viewportWidth();
+    const nextNarrow = viewport < 720;
+    if (wasNarrow.current !== nextNarrow && organizedRef.current) {
+      const laid = organize(itemsRef.current, nextNarrow);
+      setLabels(laid.labels);
+      setHeight(laid.height);
+      refresh();
+    }
+    wasNarrow.current = nextNarrow;
+    setNarrow(nextNarrow);
+    document.body.classList.toggle("m", nextNarrow);
+    const next = deskFit(viewport, nextNarrow, organizedRef.current);
+    stageWRef.current = next.stage;
+    scaleRef.current = next.scale;
+    setStageW(next.stage);
+    setScale(next.scale);
+  }
+
   useEffect(() => {
-    const fit = () => {
-      const viewport = viewportWidth();
-      const nextNarrow = viewport < 720;
-      setNarrow(nextNarrow);
-      document.body.classList.toggle("m", nextNarrow);
-      const nextStage = nextNarrow ? 640 : DESK_W;
-      const nextScale = viewport / nextStage;
-      stageWRef.current = nextStage;
-      scaleRef.current = nextScale;
-      setStageW(nextStage);
-      setScale(nextScale);
-    };
+    const fit = () => applyFit();
     fit();
     const observer = new ResizeObserver(fit);
     if (wrapRef.current) observer.observe(wrapRef.current);
@@ -110,36 +125,6 @@ export function Desk({ dark, onToggleTheme }) {
       window.removeEventListener("resize", fit);
     };
   }, []);
-
-  useEffect(() => {
-    if (narrow) {
-      if (!phoneLayout.current) desktopOrganized.current = organizedRef.current;
-      const laid = organize(itemsRef.current, true);
-      phoneLayout.current = true;
-      setLabels(laid.labels);
-      setHeight(laid.height);
-      setOrganized(true);
-      refresh();
-      syncLamp();
-      return;
-    }
-    if (!phoneLayout.current) return;
-    phoneLayout.current = false;
-    if (desktopOrganized.current) {
-      const laid = organize(itemsRef.current, false);
-      setLabels(laid.labels);
-      setHeight(laid.height);
-      setOrganized(true);
-    } else {
-      restoreHome(itemsRef.current);
-      itemsRef.current.forEach((item) => { item.off = false; });
-      setLabels(messyLabels());
-      setHeight(MESSY_H);
-      setOrganized(false);
-    }
-    refresh();
-    syncLamp();
-  }, [narrow]);
 
   useEffect(() => {
     const tick = () => {
@@ -209,7 +194,7 @@ export function Desk({ dark, onToggleTheme }) {
       }
       if (typing || openId || binOpen) return;
       if (event.key === "r" || event.key === "R") resetDesk();
-      if ((event.key === "o" || event.key === "O") && !narrow) toggleOrganize();
+      if (event.key === "o" || event.key === "O") toggleOrganize();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -268,7 +253,7 @@ export function Desk({ dark, onToggleTheme }) {
   function onBinHover(item, active) {
     const bin = itemsRef.current.find((entry) => entry.isDustbin);
     const node = document.getElementById("obj-dustbin");
-    if (!bin || !node || item.isDustbin || item.themeLamp) return;
+    if (!bin || !node || item.isDustbin) return;
     const centerX = item.x + item.w / 2;
     const centerY = item.y + item.h / 2;
     const over = active && centerX > bin.x && centerX < bin.x + bin.w && centerY > bin.y && centerY < bin.y + bin.h;
@@ -279,12 +264,13 @@ export function Desk({ dark, onToggleTheme }) {
   function onDrop(item) {
     document.getElementById("obj-dustbin")?.classList.remove("bin-target");
     syncLamp();
-    if (!item.overBin || item.isDustbin || item.themeLamp) {
+    if (!item.overBin || item.isDustbin) {
       item.overBin = false;
       return;
     }
     playBinDrop(item);
     item.inBin = true;
+    if (item.themeLamp) lampInBin(true);
     item.overBin = false;
     item.x = item.placeX ?? item.x0;
     item.y = item.placeY ?? item.y0;
@@ -292,9 +278,15 @@ export function Desk({ dark, onToggleTheme }) {
     refresh();
   }
 
+  function lampInBin(inside) {
+    if (inside !== dark) onToggleTheme();
+  }
+
   function restore(item) {
     item.inBin = false;
     item.swept = false;
+    item._gone = false;
+    if (item.themeLamp) lampInBin(false);
     refresh();
   }
 
@@ -314,7 +306,7 @@ export function Desk({ dark, onToggleTheme }) {
       return;
     }
     if (!item.isDustbin || item.shaking) return;
-    const loose = itemsRef.current.filter((entry) => !entry.inBin && !entry.off && !entry.isDustbin && !entry.themeLamp);
+    const loose = itemsRef.current.filter((entry) => !entry.inBin && !entry.off && !entry.isDustbin);
     if (loose.length) sweepIntoBin(item, loose);
     else vomitFromBin(item, itemsRef.current.filter((entry) => entry.inBin));
   }
@@ -399,6 +391,7 @@ export function Desk({ dark, onToggleTheme }) {
       entry._gone = true;
       entry.inBin = true;
       entry.swept = true;
+      if (entry.themeLamp) lampInBin(true);
       if (el) {
         el.style.display = "none";
         el.style.transform = `rotate(${entry.r}deg)`;
@@ -434,6 +427,7 @@ export function Desk({ dark, onToggleTheme }) {
 
   function vomitFromBin(bin, list) {
     if (!list.length) return;
+    if (list.some((entry) => entry.themeLamp)) lampInBin(false);
     bin.shaking = true;
     binArt()?.classList.add("rattle");
     playRestore();
@@ -466,7 +460,7 @@ export function Desk({ dark, onToggleTheme }) {
   }
 
   function resetDesk() {
-    const keepOrganized = organized && window.innerWidth >= 720;
+    const keepOrganized = organized;
     itemsRef.current.forEach((item) => {
       item.inBin = item.id === "j1";
       item.swept = false;
@@ -480,38 +474,39 @@ export function Desk({ dark, onToggleTheme }) {
     setBrowseOpen(false);
     coffeeRef.current = false;
     setSpills([]);
-    if (window.innerWidth < 720) {
-      const laid = organize(itemsRef.current, true);
+    if (keepOrganized) {
+      const laid = organize(itemsRef.current, viewportWidth() < 720);
       setLabels(laid.labels);
       setHeight(laid.height);
       setOrganized(true);
-    } else if (keepOrganized) {
-      const laid = organize(itemsRef.current, false);
-      setLabels(laid.labels);
-      setHeight(laid.height);
     } else {
       setLabels(messyLabels());
       setHeight(MESSY_H);
       setOrganized(false);
     }
+    organizedRef.current = keepOrganized;
+    applyFit();
     refresh();
     syncLamp();
   }
 
   function toggleOrganize() {
-    if (window.innerWidth < 720) return;
+    const phone = viewportWidth() < 720;
     if (organized) {
       restoreHome(itemsRef.current);
       itemsRef.current.forEach((item) => { item.off = false; });
       setLabels(messyLabels());
       setHeight(MESSY_H);
       setOrganized(false);
+      organizedRef.current = false;
     } else {
-      const laid = organize(itemsRef.current, false);
+      const laid = organize(itemsRef.current, phone);
       setLabels(laid.labels);
       setHeight(laid.height);
       setOrganized(true);
+      organizedRef.current = true;
     }
+    applyFit();
     refresh();
     syncLamp();
   }
@@ -567,7 +562,7 @@ export function Desk({ dark, onToggleTheme }) {
 
   return (
     <>
-      <div id="wrap" ref={wrapRef} style={{ height: height * scale }} onPointerDown={(event) => {
+      <div id="wrap" ref={wrapRef} className={stageW * scale > viewportWidth() + 8 ? "desk-pan" : ""} style={{ height: height * scale }} onPointerDown={(event) => {
         if (event.target.closest(".obj") || event.target.closest("#hero")) return;
         if (!query && category === "Everything") return;
         clearFilter();
@@ -583,6 +578,7 @@ export function Desk({ dark, onToggleTheme }) {
           }}>Resume</button>
           <button type="button" onClick={() => showTour(0)}>Quick tour</button>
         </div>
+        <div className="desk-sizer" style={{ width: stageW * scale, height: height * scale }}>
         <div id="stage" ref={stageRef} style={{ width: stageW, height, transform: `scale(${scale})` }}>
           {labels.map((label) => (
             <div key={label.id} className={label.kind} style={{ left: label.x, top: label.y }}>{label.text}</div>
@@ -609,6 +605,7 @@ export function Desk({ dark, onToggleTheme }) {
             />
           ))}
         </div>
+        </div>
       </div>
 
       <Toolbar
@@ -626,7 +623,6 @@ export function Desk({ dark, onToggleTheme }) {
         showMove={narrow || window.matchMedia("(pointer: coarse)").matches}
         arrange={arrange}
         onArrange={() => setArrange((value) => !value)}
-        narrow={narrow}
         soundOn={soundOn}
         onSound={() => setSoundOn(toggleSound())}
       />

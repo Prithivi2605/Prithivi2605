@@ -5,7 +5,18 @@
     overflow: hidden;
   }
 
+  #wrap.desk-pan {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .desk-sizer {
+    position: relative;
+  }
+
   body.m #hero {
+    position: fixed;
+    z-index: 80;
     top: 8px;
     left: 8px;
     right: 8px;
@@ -23,8 +34,8 @@
   body.m #hero b { font-size: 14px; }
   body.m #hero button { padding: 7px 10px; }
   body.m #bReset,
-  body.m #bStory { display: inline-flex; }
-  body.m #bOrg { display: none; }
+  body.m #bStory,
+  body.m #bOrg { display: inline-flex; }
 
   body.m .tb {
     left: 8px;

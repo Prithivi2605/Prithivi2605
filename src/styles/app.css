@@ -168,6 +168,7 @@ body.arrange .obj, #obj-mug, #obj-dustbin { touch-action: none; }
 }
 .tb > button,
 .tb > label { flex: 0 0 auto; }
+.desk-sizer { position: relative; }
 .tb label #bSfx {
   border: 0;
   border-radius: 99px;
