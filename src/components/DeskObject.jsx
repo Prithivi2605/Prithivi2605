@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { DESK_W, MESSY_H } from "../utils/layout.js";
-import { playDrop, playHover, playLift, slideMove, slideStart, slideStop } from "../utils/sfx.js";
+import { playDrop, playHover, playLift, slideMove, slideStart, slideStop, unlockSound } from "../utils/sfx.js";
 import { ObjectFace } from "./ObjectFace.jsx";
 
 export function DeskObject({ item, dark, binCount, scaleRef, stageWidthRef, heightRef, arrangeRef, layoutVersion, stains = [], onOpen, onBinHover, onShake, onDrop }) {
@@ -28,6 +28,7 @@ export function DeskObject({ item, dark, binCount, scaleRef, stageWidthRef, heig
   }
 
   function onPointerDown(event) {
+    unlockSound();
     if (item.off) return;
     const touch = event.pointerType === "touch" || event.pointerType === "pen";
     if (touch && !arrangeRef.current && item.id !== "mug" && !item.isDustbin) {
@@ -136,7 +137,7 @@ export function DeskObject({ item, dark, binCount, scaleRef, stageWidthRef, heig
     <div
       id={`obj-${item.id}`}
       ref={ref}
-      className={`obj lv${item.lv}${item.themeLamp ? " lamp-object" : ""}${item.dim ? " dim" : ""}${item.hit ? " hit" : ""}${item.off ? " off" : ""}`}
+      className={`obj lv${item.lv}${item.themeLamp ? " lamp-object" : ""}${item.dim ? " dim" : ""}${item.hit ? " hit" : ""}${item.off ? " off" : ""}${item.concealed ? " hide" : ""}`}
       role="button"
       tabIndex={item.inBin || item.off ? -1 : 0}
       aria-label={label}

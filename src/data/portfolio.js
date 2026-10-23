@@ -23,7 +23,7 @@ export const portfolio = {
       message: "entry.519662132"
     }
   },
-  resumePath: "/resume/Prithiviraj-B-Resume.pdf",
+  resumePath: "/resume/Prithiviraj.pdf",
   summary: "Final-year Computer Science and Engineering student with hands-on experience in full-stack web development and ASP.NET MVC application development. Skilled in React.js, Node.js, Express.js, MySQL, and REST APIs, with project experience in inventory management, examination seating automation, and machine learning-based sentiment analysis. Familiar with database management, version control using Git, and developing web applications to solve practical problems. Seeking an entry-level Full-Stack Developer or Software Developer role.",
   about: [
     "Final-year Computer Science and Engineering student with hands-on experience in full-stack web development and ASP.NET MVC application development. Skilled in React.js, Node.js, Express.js, MySQL, and REST APIs, with project experience in inventory management, examination seating automation, and machine learning-based sentiment analysis.",
@@ -67,6 +67,7 @@ export const portfolio = {
     }
   ],
   achievements: [],
+  // Copy one object to add a certificate. id must be unique. A photo named with that id in src/assets shows on the card.
   certifications: [
     { id: "cert-ml", title: "Machine Learning Techniques", issuer: "Coursera", year: "2026" },
     { id: "cert-aws", title: "AWS Academy Graduate — Cloud Foundations", issuer: "", year: "2025" },
@@ -121,6 +122,7 @@ export const portfolio = {
       ]
     }
   ],
+  // Copy one object to add a project. Keep enabled: true and use a new id. It joins the Projects row in the same card format.
   projects: [
     {
       id: "p-merchant",
@@ -210,5 +212,5 @@ export const tourStops = [
   ["timeline", "Junior Web Developer Intern at Wander With Food | BINI, July 2025 to January 2026, using ASP.NET MVC and C#."],
   ["skillcard", "The skill chips match the resume: languages, web and backend, databases, tools, and fundamentals."],
   ["resume", "Open the resume sheet for education, projects, the internship, and certifications."],
-  ["biz", "Email is prithivirajb26@gmail.com. Phone is 7339044516. LinkedIn and GitHub URLs are not added yet."]
+  ["biz", "Email is prithivirajb26@gmail.com. Phone is 7339044516. LinkedIn and GitHub are on the contact card."]
 ];

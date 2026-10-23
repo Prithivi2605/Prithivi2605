@@ -133,7 +133,7 @@ export function ObjectFace({ item, dark, binCount }) {
     return (
       <>
         <i className="pin pin-yellow" style={{ left: 22, top: -6 }} />
-        <div className="face"><div className="note pp">Interests<br />✓ Full-stack development<br />✓ Emerging technologies</div></div>
+        <div className="face"><div className="note pp">Interests<br />{portfolio.interests.map((interest) => <span key={interest}>✓ {interest}<br /></span>)}</div></div>
       </>
     );
   }
@@ -172,6 +172,71 @@ export function ObjectFace({ item, dark, binCount }) {
   if (item.kind === "phone") {
     return (
       <div className="face"><div className="phx"><PhoneCard /></div></div>
+    );
+  }
+  if (item.kind === "laptop") {
+    return (
+      <div className="face">
+        <svg viewBox="0 0 330 220" aria-hidden="true" style={{ display: "block", width: "100%", height: "100%" }}>
+          <rect x="28" y="6" width="274" height="172" rx="9" fill="#2d2f3a" />
+          <rect x="36" y="14" width="258" height="156" rx="3" fill="#fff" />
+          <rect x="36" y="14" width="258" height="24" fill="#eceef4" />
+          <g fill="#f08a7e"><circle cx="47" cy="26" r="3" /></g>
+          <circle cx="57" cy="26" r="3" fill="#f4c542" />
+          <circle cx="67" cy="26" r="3" fill="#6fd3c0" />
+          <rect x="78" y="17" width="72" height="21" rx="5" fill="#fff" />
+          <text x="86" y="30" fontFamily="Bricolage Grotesque, sans-serif" fontSize="7" fontWeight="700" fill="#23223a">prithivirajb</text>
+          <rect x="158" y="21" width="116" height="13" rx="6.5" fill="#fff" stroke="#d6d9e4" />
+          <text x="166" y="30.5" fontFamily="Bricolage Grotesque, sans-serif" fontSize="6.5" fill="#6b6a80">github.com/prithivirajb26</text>
+          <rect x="36" y="38" width="258" height="132" fill="#f6f1ff" />
+          <text x="52" y="72" fontFamily="Fraunces, Georgia, serif" fontWeight="800" fontSize="20" fill="#23223a">I'm Prithiviraj.</text>
+          <text x="52" y="86" fontFamily="Bricolage Grotesque, sans-serif" fontSize="8.5" fill="#6b6a80">{portfolio.shortRole}</text>
+          <rect x="52" y="95" width="62" height="16" rx="8" fill="#7b3fe4" />
+          <text x="83" y="106" textAnchor="middle" fontFamily="Bricolage Grotesque, sans-serif" fontWeight="700" fontSize="8" fill="#fff">{activeProjects.length} projects</text>
+          <circle cx="252" cy="78" r="30" fill="#dff3ea" />
+          <svg x="228" y="54" width="48" height="48" viewBox="0 0 100 100">
+            <circle cx="26" cy="26" r="11" fill="#9ac7ae" />
+            <circle cx="74" cy="26" r="11" fill="#9ac7ae" />
+            <ellipse cx="50" cy="56" rx="34" ry="32" fill="#a9d3bd" />
+            <ellipse cx="50" cy="64" rx="14" ry="10" fill="#d4ebdd" />
+            <circle cx="38" cy="50" r="4.2" fill="#2a2540" />
+            <circle cx="62" cy="50" r="4.2" fill="#2a2540" />
+            <circle cx="39.3" cy="48.6" r="1.4" fill="#fff" />
+            <circle cx="63.3" cy="48.6" r="1.4" fill="#fff" />
+            <ellipse cx="50" cy="60" rx="4" ry="3" fill="#3a4a40" />
+          </svg>
+          <g>
+            <rect x="52" y="124" width="64" height="38" rx="4" fill="#e7defc" />
+            <rect x="126" y="124" width="64" height="38" rx="4" fill="#d6f5ef" />
+            <rect x="200" y="124" width="64" height="38" rx="4" fill="#fff1c9" />
+            {[52, 126, 200].map((x) => (
+              <g key={x}>
+                <rect x={x + 6} y="130" width="30" height="4" rx="2" fill="#23223a" opacity="0.7" />
+                <rect x={x + 6} y="140" width="50" height="3" rx="1.5" fill="#23223a" opacity="0.25" />
+                <rect x={x + 6} y="147" width="40" height="3" rx="1.5" fill="#23223a" opacity="0.25" />
+              </g>
+            ))}
+          </g>
+          <path d="M8 178H322L316 196Q314 204 304 204H26Q16 204 14 196Z" fill="#c9ccd8" stroke="#8e92a4" strokeWidth="1.2" />
+          <path d="M8 178H322" stroke="#8e92a4" strokeWidth="1.5" />
+          <path d="M138 178H192Q190 187 165 187 140 187 138 178Z" fill="#aeb2c2" stroke="#8e92a4" />
+          <path d="M18 198H312" stroke="#aeb2c2" />
+        </svg>
+      </div>
+    );
+  }
+  if (item.kind === "postcard" && project) {
+    return (
+      <div className="face">
+        <div className="postcard pp" style={{ "--a": project.c1, "--b": project.c2 }}>
+          <div className="photo"><Mascot kind={project.sticker} /></div>
+          <div className="line" />
+          <div className="addr">Prithiviraj B<br />Coimbatore</div>
+          <div className="caption">{project.name}</div>
+          <small>{project.summary}</small>
+          <div className="postmark">PB<br />2026</div>
+        </div>
+      </div>
     );
   }
   if (item.kind === "project" && project) {
@@ -216,14 +281,14 @@ export function ObjectFace({ item, dark, binCount }) {
     );
   }
   if (item.kind === "education") {
+    const school = portfolio.education[item.eduIndex] || portfolio.education[0];
+    const label = item.eduIndex === 0 ? "College" : item.eduIndex === 1 ? "School" : "Education";
     return (
       <>
         <i className="bclip" />
         <div className="face"><div className="paper pp fold">
-          <small>Education</small>
-          {portfolio.education.map((school) => (
-            <p key={school.institution}><b>{school.institution}</b><br />{school.years}<br />{school.score}</p>
-          ))}
+          <small>{label}</small>
+          <p><b>{school.institution}</b><br />{school.degree}<br />{school.years}<br />{school.score}</p>
         </div></div>
       </>
     );

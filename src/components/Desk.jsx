@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createDesk } from "../data/createDesk.js";
 import { activeProjects, portfolio, tourStops } from "../data/portfolio.js";
 import { DESK_W, MESSY_H, messyLabels, organize, restoreHome } from "../utils/layout.js";
+import { flyHome, flyOpen } from "../utils/openMotion.js";
 import { playBinDrop, playClose, playCoffee, playOpen, playRestore, playSplat, playSweep, playTheme, playWipe, soundIsOn, toggleSound } from "../utils/sfx.js";
 import { DeskObject } from "./DeskObject.jsx";
 import { ObjectFace } from "./ObjectFace.jsx";
@@ -59,12 +60,16 @@ export function Desk({ dark, onToggleTheme }) {
   const [category, setCategory] = useState("Everything");
   const [browseOpen, setBrowseOpen] = useState(false);
   const [openId, setOpenId] = useState(null);
+  const [lift, setLift] = useState("");
   const [binOpen, setBinOpen] = useState(false);
   const [tour, setTour] = useState(-1);
   const [toast, setToast] = useState("");
   const [spills, setSpills] = useState([]);
   const coffeeRef = useRef(false);
   const heardRef = useRef(null);
+  const flyerRef = useRef(null);
+  const landTimer = useRef(0);
+  const flyGen = useRef(0);
   const [soundOn, setSoundOn] = useState(() => soundIsOn());
   const [resumeNote, setResumeNote] = useState("");
   const [stageW, setStageW] = useState(() => bootRef.current.stage);
@@ -224,6 +229,12 @@ export function Desk({ dark, onToggleTheme }) {
     window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion ? "auto" : "smooth" });
   }
 
+  function clearFlyer() {
+    window.clearTimeout(landTimer.current);
+    flyerRef.current?.remove();
+    flyerRef.current = null;
+  }
+
   function openItem(item) {
     if (item.themeLamp) {
       playTheme(!dark);
@@ -236,15 +247,45 @@ export function Desk({ dark, onToggleTheme }) {
       openerRef.current = document.activeElement;
       setBinOpen(true);
       setOpenId(null);
+      setLift("");
       return;
     }
+    itemsRef.current.forEach((entry) => {
+      if (entry.id !== item.id) entry.concealed = false;
+    });
+    clearFlyer();
     openerRef.current = document.activeElement;
-    setOpenId(item.id);
     setBinOpen(false);
+    setOpenId(item.id);
+    if (reduceMotion) {
+      setLift("");
+      return;
+    }
+    item.concealed = true;
+    setLift("lift");
+    refresh();
+    const generation = flyGen.current + 1;
+    flyGen.current = generation;
+    landTimer.current = window.setTimeout(() => setLift("land"), 340);
+    window.requestAnimationFrame(() => {
+      if (generation !== flyGen.current) return;
+      flyerRef.current = flyOpen(item);
+    });
   }
 
   function closeDialog() {
+    const item = openId ? itemsRef.current.find((entry) => entry.id === openId) : null;
     if (heardRef.current && (openId || binOpen)) playClose(heardRef.current);
+    flyGen.current += 1;
+    clearFlyer();
+    setLift("");
+    if (item?.concealed && !reduceMotion) {
+      const flying = flyHome(item, refresh);
+      if (flying) flyerRef.current = flying;
+      else item.concealed = false;
+    } else if (item) {
+      item.concealed = false;
+    }
     setOpenId(null);
     setBinOpen(false);
     openerRef.current?.focus?.();
@@ -462,7 +503,6 @@ export function Desk({ dark, onToggleTheme }) {
   function resetDesk() {
     const keepOrganized = organized;
     itemsRef.current.forEach((item) => {
-      item.inBin = item.id === "j1";
       item.swept = false;
       item._gone = false;
       item.dim = false;
@@ -517,13 +557,13 @@ export function Desk({ dark, onToggleTheme }) {
       if (!response.ok) throw new Error("missing");
       const link = document.createElement("a");
       link.href = portfolio.resumePath;
-      link.download = "Prithiviraj-B-Resume.pdf";
+      link.download = "Prithiviraj.pdf";
       document.body.appendChild(link);
       link.click();
       link.remove();
       setResumeNote("The resume download should start.");
     } catch {
-      setResumeNote("The PDF is not in the project yet. Save it as public/resume/Prithiviraj-B-Resume.pdf.");
+      setResumeNote("The PDF is not in the project yet. Save it as public/resume/Prithiviraj.pdf.");
     }
   }
 
@@ -544,7 +584,7 @@ export function Desk({ dark, onToggleTheme }) {
     }
   }
 
-  const categories = ["Everything", "Documents", "Projects", "Experience", "Education", "Personal", "Contact", "Skills"]
+  const categories = ["Everything", "Personal", "Documents", "Certificates", "Projects", "Experience", "Education", "Contact", "Skills", "Interests"]
     .map((name) => ({
       name,
       count: name === "Everything"
@@ -653,7 +693,7 @@ export function Desk({ dark, onToggleTheme }) {
       <div id="veil" className={openId || binOpen ? "on" : ""} onClick={closeDialog} />
       <div
         id="panel"
-        className={`${openId || binOpen ? "open" : ""}${binOpen ? " bin-open" : ""}${openProject ? " project-open" : ""}`}
+        className={`${openId || binOpen ? "open" : ""}${lift === "lift" ? " lift" : ""}${binOpen ? " bin-open" : ""}${openProject ? " project-open" : ""}`}
         style={openProject ? { "--sheet-tint": openProject.tint, "--sheet-accent": openProject.accent } : undefined}
         role="dialog"
         aria-modal="true"

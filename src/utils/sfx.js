@@ -47,20 +47,43 @@ function init() {
 }
 
 function ready() {
-  if (!enabled || !unlocked || !AC) return false;
-  if (!ctx) init();
-  if (ctx?.state === "suspended") ctx.resume();
-  return Boolean(ctx);
+  if (!enabled || !unlocked) return false;
+  const audio = boot();
+  return Boolean(audio && audio.state === "running");
 }
 
 export function unlockSound() {
   unlocked = true;
-  if (enabled) ready();
+  const audio = boot();
+  if (!audio) return;
+  try {
+    const buffer = audio.createBuffer(1, 1, audio.sampleRate);
+    const source = audio.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audio.destination);
+    source.start(0);
+  } catch { /* the context is already running */ }
+  if (audio.state === "running") flush();
 }
 
-["pointerdown", "keydown", "touchstart"].forEach((type) => {
-  window.addEventListener(type, unlockSound, { capture: true, passive: true });
+const waiting = [];
+function flush() {
+  if (!ctx || ctx.state !== "running") return;
+  waiting.splice(0).forEach((job) => {
+    try { job(); } catch { /* a missed sound should not stop the desk */ }
+  });
+}
+function boot() {
+  if (!enabled || !AC) return null;
+  if (!ctx) init();
+  if (ctx.state === "suspended") ctx.resume().then(flush).catch(() => {});
+  return ctx;
+}
+
+["pointerdown", "touchstart"].forEach((type) => {
+  window.addEventListener(type, unlockSound, { capture: true, passive: false });
 });
+window.addEventListener("keydown", unlockSound, { capture: true });
 
 const now = () => ctx.currentTime + 0.006;
 function route(node) {
@@ -198,7 +221,8 @@ function material(item) {
   if (item.kind === "mug") return "ceramic";
   if (item.kind === "clock" || item.isDustbin || item.themeLamp) return "metal";
   if (item.kind === "cat") return item.mascot === "crystal" ? "crystal" : item.mascot === "axo" ? "rubber" : "plush";
-  if (item.kind === "pen" || item.kind === "phone") return "plastic";
+  if (item.kind === "pen" || item.kind === "phone" || item.kind === "laptop") return "plastic";
+  if (item.kind === "postcard") return "card";
   if (item.kind === "pencil" || item.kind === "stamp") return item.kind === "pencil" ? "wood" : "card";
   if (item.kind === "eraser") return "rubber";
   if (item.kind === "notes") return "book";
@@ -208,10 +232,19 @@ function material(item) {
 const pitchOf = (item) => 0.88 + (hash(item?.id || "desk") % 1000) / 1000 * 0.3;
 
 function withItem(item, play) {
-  if (!ready()) return;
-  pan = item?.w ? clamp(((item.x + item.w / 2) / 1400 - 0.5) * 1.4, -0.7, 0.7) : 0;
-  try { play(); } catch { /* a missed sound should not stop the desk */ }
-  pan = 0;
+  if (!enabled || !unlocked) return;
+  const audio = boot();
+  if (!audio) return;
+  const run = () => {
+    pan = item?.w ? clamp(((item.x + item.w / 2) / 1400 - 0.5) * 1.4, -0.7, 0.7) : 0;
+    try { play(); } catch { /* a missed sound should not stop the desk */ }
+    pan = 0;
+  };
+  if (audio.state !== "running") {
+    waiting.push(run);
+    return;
+  }
+  run();
 }
 
 const skills = {
@@ -235,6 +268,8 @@ function signature(item) {
   if (item.id === "mug") return () => { bell(1800, { d: 0.3, v: 0.1, ratio: 2.4 }); drip(0.14, 420, 0.12); };
   if (item.id === "clock") return () => { [0, 1, 2, 3].forEach((index) => wood(index * 0.22, index % 2 ? 1100 : 1500, 0.2)); ding(1760, 0.9, 0.07, 1.4); };
   if (item.kind === "project") return () => { tone({ f: 300 + (item.projectIndex || 0) * 80, f2: 1600, d: 0.28, type: "sawtooth", v: 0.05, lp: 3200 }); ding(1200 + (item.projectIndex || 0) * 180, 0.25, 0.08, 0.8); };
+  if (item.kind === "laptop") return () => { for (let index = 0; index < 4; index += 1) click(index * 0.04, 2200, 0.06); [330, 415, 494, 659].forEach((frequency, index) => tone({ t: 0.16 + index * 0.05, f: frequency, d: 0.28, type: "triangle", v: 0.08 })); };
+  if (item.kind === "postcard") return () => { rustle(0, 0.16, 0.08, 2800); ding(880 + (hash(item.id) % 5) * 70, 0.12, 0.08, 0.7); };
   if (item.kind === "cert") return () => { rustle(0, 0.2, 0.08, 3000); ding(1046, 0.16, 0.1, 0.9); ding(1568, 0.32, 0.08, 1); };
   if (item.kind === "cat" && item.mascot === "cat") return () => meow(0, 720);
   if (item.kind === "cat" && item.mascot === "crystal") return () => { [4186, 3520, 2794].forEach((frequency, index) => bell(frequency, { t: index * 0.06, d: 1, v: 0.04, ratio: 1.4 })); };
@@ -279,7 +314,13 @@ export function playWipe() { withItem(null, () => { for (let index = 0; index < 
 export function playSplat() { if (gate("splat", 40)) withItem(null, () => { tone({ f: rnd(260, 520), f2: rnd(120, 220), d: 0.08, v: 0.07, a: 0.002 }); noise({ d: 0.05, type: "lowpass", f: 900, v: 0.05 }); }); }
 
 export function slideStart(item) {
-  if (!ready()) return;
+  if (!enabled || !unlocked) return;
+  const audio = boot();
+  if (!audio) return;
+  if (audio.state !== "running") {
+    waiting.push(() => slideStart(item));
+    return;
+  }
   slideStop();
   const filter = ctx.createBiquadFilter();
   filter.type = "bandpass";

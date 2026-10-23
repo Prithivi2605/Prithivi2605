@@ -14,11 +14,13 @@ function External({ href, children, primary }) {
 
 export function ViewerBody({ item, dark, onDownload }) {
   if (item.viewer === "project") return <ProjectViewer id={item.projectId} />;
+  if (item.viewer === "projects") return <LaptopViewer />;
+  if (item.viewer === "postcard") return <PostcardViewer id={item.projectId} />;
   if (item.viewer === "skills") return <SkillsViewer />;
   if (item.viewer === "experience") return <ExperienceViewer />;
   if (item.viewer === "resume") return <ResumeViewer onDownload={onDownload} />;
   if (item.viewer === "contact") return <ContactViewer />;
-  if (item.viewer === "education") return <EducationViewer />;
+  if (item.viewer === "education") return <EducationViewer index={item.eduIndex} />;
   if (item.viewer === "cert") return <CertViewer id={item.certId} />;
   if (item.viewer === "about") {
     return (
@@ -53,13 +55,14 @@ function FaceFrame({ item, dark }) {
 }
 
 export function viewerTitle(item) {
-  if (item.viewer === "project") return activeProjects.find((project) => project.id === item.projectId)?.name || item.name;
+  if (item.viewer === "project" || item.viewer === "postcard") return activeProjects.find((project) => project.id === item.projectId)?.name || item.name;
+  if (item.viewer === "projects") return "All projects";
   if (item.viewer === "about") return portfolio.name;
   if (item.viewer === "resume") return portfolio.name;
   if (item.viewer === "contact") return "Say hello";
   if (item.viewer === "skills") return "Technical skills";
   if (item.viewer === "experience") return portfolio.experience[0].organization;
-  if (item.viewer === "education") return portfolio.education[0].institution;
+  if (item.viewer === "education") return portfolio.education[item.eduIndex ?? 0]?.institution || item.name;
   if (item.viewer === "cert") return portfolio.certifications.find((cert) => cert.id === item.certId)?.title || item.name;
   if (item.kind === "lamp") return "Light and dark";
   return item.name;
@@ -69,6 +72,8 @@ export function viewerKind(item) {
   if (item.viewer === "project") return "Project";
   if (item.viewer === "skill") return skillWord(item.skill.name);
   return {
+    projects: "Projects",
+    postcard: "Postcard",
     about: "About",
     resume: "Resume",
     contact: "Contact",
@@ -107,6 +112,39 @@ function ProjectViewer({ id }) {
           <External href={project.github}>GitHub</External>
         </p>
         {!isHttp(project.github) && !isHttp(project.demo) && <p className="fine">GitHub and live demo links can be added in src/data/portfolio.js.</p>}
+      </div>
+    </div>
+  );
+}
+
+function LaptopViewer() {
+  return (
+    <div className="vb pg">
+      <div className="sheet">
+        {activeProjects.map((project) => (
+          <div className="pr" key={project.id}>
+            <i style={{ background: `linear-gradient(135deg, ${project.c1}, ${project.c2})` }} />
+            <div>
+              <b>{project.name}</b>
+              <span>{project.subtitle} · {project.stack.slice(0, 3).join(", ")}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PostcardViewer({ id }) {
+  const project = activeProjects.find((entry) => entry.id === id);
+  if (!project) return null;
+  return (
+    <div className="vb pg">
+      <div className="sheet">
+        <h3>A note from {project.name}</h3>
+        <p>{project.summary}</p>
+        <p>{project.description}</p>
+        <div className="chips">{project.stack.map((item) => <span key={item}>{item}</span>)}</div>
       </div>
     </div>
   );
@@ -153,11 +191,12 @@ function ExperienceViewer() {
   );
 }
 
-function EducationViewer() {
+function EducationViewer({ index }) {
+  const schools = Number.isInteger(index) ? portfolio.education.filter((_, entry) => entry === index) : portfolio.education;
   return (
     <div className="vb pg">
       <div className="sheet">
-        {portfolio.education.map((school) => (
+        {schools.map((school) => (
           <article key={school.institution}>
             <h3>{school.degree}</h3>
             <p><b>{school.institution}</b><br />{school.years}<br />{school.score}</p>
@@ -203,7 +242,7 @@ function ResumeViewer({ onDownload }) {
           <p>{portfolio.languages.map((language) => `${language.name} — ${language.level}`).join(" · ")}</p>
         </div>
         <p className="link-row"><button type="button" className="btn p" onClick={onDownload}>Download PDF</button></p>
-        <p className="fine">Save your resume as public/resume/Prithiviraj-B-Resume.pdf. This page is a readable preview, not a generated PDF.</p>
+        <p className="fine">The download uses the file in public/resume/Prithiviraj.pdf.</p>
       </div>
     </div>
   );
@@ -230,8 +269,8 @@ function ContactViewer() {
 
   return (
     <div className="vb pg">
-      <div className="sheet">
-        <p>Send a message here.</p>
+      <div className="sheet contact-sheet">
+        <h3>Send a message</h3>
         {sent ? <p><b>Message sent. Thank you.</b></p> : (
           <form className="message-form" onSubmit={onSubmit}>
             <label>Your name
@@ -252,16 +291,32 @@ function ContactViewer() {
             <label>Message
               <textarea name="message" required maxLength={2000} />
             </label>
-            <p><button type="submit" className="btn p" disabled={sending}>{sending ? "Sending…" : "Send message"}</button></p>
+            <button type="submit" className="btn p" disabled={sending}>{sending ? "Sending…" : "Send message"}</button>
           </form>
         )}
-        {email ? <p><a className="btn p" href={`mailto:${portfolio.email}`}>{portfolio.email}</a></p> : null}
-        {portfolio.phone ? <p><a className="btn" href={`tel:${portfolio.phone}`}>{portfolio.phone}</a></p> : null}
-        <p className="link-row">
-          <External href={portfolio.github} primary>GitHub</External>
-          <External href={portfolio.linkedin}>LinkedIn</External>
-        </p>
-        {!isHttp(portfolio.github) && !isHttp(portfolio.linkedin) && <p className="fine">LinkedIn and GitHub profile URLs are not added yet. Add them in src/data/portfolio.js.</p>}
+        <div className="reach">
+          <h3>Reach me</h3>
+          {email && (
+            <div className="reach-row">
+              <span>Email</span>
+              <a href={`mailto:${portfolio.email}`}>{portfolio.email}</a>
+            </div>
+          )}
+          {portfolio.phone && (
+            <div className="reach-row">
+              <span>Phone</span>
+              <a href={`tel:${portfolio.phone}`}>{portfolio.phone}</a>
+            </div>
+          )}
+          <div className="reach-row">
+            <span>GitHub</span>
+            {isHttp(portfolio.github) ? <a className="btn" href={portfolio.github} target="_blank" rel="noopener noreferrer">Open GitHub</a> : <em>Not added yet</em>}
+          </div>
+          <div className="reach-row">
+            <span>LinkedIn</span>
+            {isHttp(portfolio.linkedin) ? <a className="btn" href={portfolio.linkedin} target="_blank" rel="noopener noreferrer">Open LinkedIn</a> : <em>Not added yet</em>}
+          </div>
+        </div>
       </div>
     </div>
   );
