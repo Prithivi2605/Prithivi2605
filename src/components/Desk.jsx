@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createDesk } from "../data/createDesk.js";
 import { activeProjects, portfolio, tourStops } from "../data/portfolio.js";
 import { DESK_W, MESSY_H, messyLabels, organize, restoreHome } from "../utils/layout.js";
+import { playBinDrop, playClose, playCoffee, playOpen, playRestore, playSplat, playSweep, playTheme, playWipe, soundIsOn, toggleSound } from "../utils/sfx.js";
 import { DeskObject } from "./DeskObject.jsx";
 import { ObjectFace } from "./ObjectFace.jsx";
 import { Drawer, Toolbar, TourBar } from "./Toolbar.jsx";
@@ -36,8 +37,16 @@ export function Desk({ dark, onToggleTheme }) {
   const [tour, setTour] = useState(-1);
   const [toast, setToast] = useState("");
   const [spills, setSpills] = useState([]);
+  const coffeeRef = useRef(false);
+  const heardRef = useRef(null);
+  const [soundOn, setSoundOn] = useState(() => soundIsOn());
   const [resumeNote, setResumeNote] = useState("");
-  const basis = DESK_W;
+  const [stageW, setStageW] = useState(() => (window.innerWidth < 720 ? 640 : DESK_W));
+  const stageWRef = useRef(stageW);
+  const organizedRef = useRef(false);
+  const phoneLayout = useRef(false);
+  const desktopOrganized = useRef(false);
+  organizedRef.current = organized;
 
   function refresh() {
     setVersion((value) => value + 1);
@@ -66,9 +75,12 @@ export function Desk({ dark, onToggleTheme }) {
       const nextNarrow = window.innerWidth < 720;
       setNarrow(nextNarrow);
       document.body.classList.toggle("m", nextNarrow);
+      const nextStage = nextNarrow ? 640 : DESK_W;
       const width = wrapRef.current?.clientWidth || window.innerWidth;
-      const nextScale = width / DESK_W;
+      const nextScale = width / nextStage;
+      stageWRef.current = nextStage;
       scaleRef.current = nextScale;
+      setStageW(nextStage);
       setScale(nextScale);
     };
     fit();
@@ -80,6 +92,36 @@ export function Desk({ dark, onToggleTheme }) {
       window.removeEventListener("resize", fit);
     };
   }, []);
+
+  useEffect(() => {
+    if (narrow) {
+      if (!phoneLayout.current) desktopOrganized.current = organizedRef.current;
+      const laid = organize(itemsRef.current, true);
+      phoneLayout.current = true;
+      setLabels(laid.labels);
+      setHeight(laid.height);
+      setOrganized(true);
+      refresh();
+      syncLamp();
+      return;
+    }
+    if (!phoneLayout.current) return;
+    phoneLayout.current = false;
+    if (desktopOrganized.current) {
+      const laid = organize(itemsRef.current, false);
+      setLabels(laid.labels);
+      setHeight(laid.height);
+      setOrganized(true);
+    } else {
+      restoreHome(itemsRef.current);
+      itemsRef.current.forEach((item) => { item.off = false; });
+      setLabels(messyLabels());
+      setHeight(MESSY_H);
+      setOrganized(false);
+    }
+    refresh();
+    syncLamp();
+  }, [narrow]);
 
   useEffect(() => {
     const tick = () => {
@@ -181,9 +223,12 @@ export function Desk({ dark, onToggleTheme }) {
 
   function openItem(item) {
     if (item.themeLamp) {
+      playTheme(!dark);
       onToggleTheme();
       return;
     }
+    playOpen(item);
+    heardRef.current = item;
     if (item.isDustbin) {
       openerRef.current = document.activeElement;
       setBinOpen(true);
@@ -196,6 +241,7 @@ export function Desk({ dark, onToggleTheme }) {
   }
 
   function closeDialog() {
+    if (heardRef.current && (openId || binOpen)) playClose(heardRef.current);
     setOpenId(null);
     setBinOpen(false);
     openerRef.current?.focus?.();
@@ -219,6 +265,7 @@ export function Desk({ dark, onToggleTheme }) {
       item.overBin = false;
       return;
     }
+    playBinDrop(item);
     item.inBin = true;
     item.overBin = false;
     item.x = item.placeX ?? item.x0;
@@ -235,18 +282,89 @@ export function Desk({ dark, onToggleTheme }) {
 
   function onShake(item) {
     if (item.id === "mug") {
-      setSpills((current) => current.length ? [] : [
-        { id: "s1", x: item.x - 30, y: item.y + item.h - 10, w: 120, h: 70 },
-        { id: "s2", x: item.x + 40, y: item.y + item.h + 16, w: 70, h: 46 }
-      ]);
-      if (spills.length) setToast("");
-      else say("Coffee on the desk. Shake the mug again to wipe it.");
+      if (coffeeRef.current) {
+        coffeeRef.current = false;
+        setSpills([]);
+        playWipe();
+        say("All wiped up.");
+        return;
+      }
+      coffeeRef.current = true;
+      splashCoffee(item);
+      playCoffee();
+      say("Oops, coffee everywhere. Shake the mug again to wipe it up.");
       return;
     }
     if (!item.isDustbin || item.shaking) return;
     const loose = itemsRef.current.filter((entry) => !entry.inBin && !entry.off && !entry.isDustbin && !entry.themeLamp);
     if (loose.length) sweepIntoBin(item, loose);
     else vomitFromBin(item, itemsRef.current.filter((entry) => entry.inBin));
+  }
+
+  function splashCoffee(mug) {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const mx = mug.x + mug.w / 2;
+    const my = mug.y + mug.h / 2;
+    const targets = [];
+    const puddles = 3 + Math.floor(Math.random() * 3);
+    for (let index = 0; index < puddles; index += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 55 + Math.random() * 135;
+      targets.push({ x: mx + Math.cos(angle) * dist, y: my + Math.sin(angle) * dist * 0.8, size: 34 + Math.random() * 36, itemId: null });
+    }
+    itemsRef.current.forEach((entry) => {
+      if (entry.id === "mug" || entry.isDustbin || entry.themeLamp || entry.inBin || entry.off) return;
+      const cx = entry.x + entry.w / 2;
+      const cy = entry.y + entry.h / 2;
+      if (Math.hypot(cx - mx, cy - my) > 220) return;
+      const size = Math.max(18, Math.min(44, Math.min(entry.w, entry.h) * (0.35 + Math.random() * 0.35)));
+      targets.push({
+        x: entry.x + entry.w * (0.2 + Math.random() * 0.6),
+        y: entry.y + entry.h * (0.2 + Math.random() * 0.6),
+        size,
+        itemId: entry.id,
+        ox: entry.x,
+        oy: entry.y
+      });
+    });
+    targets.forEach((target, index) => {
+      const stain = {
+        id: `spill-${Date.now()}-${index}`,
+        itemId: target.itemId,
+        x: target.x - (target.ox || 0) - target.size / 2,
+        y: target.y - (target.oy || 0) - target.size / 2,
+        w: target.size,
+        h: Math.round(target.size * (0.75 + Math.random() * 0.25)),
+        rotate: Math.round(Math.random() * 180),
+        radius: `${40 + Math.floor(Math.random() * 20)}% ${40 + Math.floor(Math.random() * 20)}% ${40 + Math.floor(Math.random() * 20)}% ${40 + Math.floor(Math.random() * 20)}%`
+      };
+      const land = () => {
+        if (!coffeeRef.current) return;
+        setSpills((current) => [...current, stain]);
+        playSplat();
+      };
+      if (reduceMotion) {
+        land();
+        return;
+      }
+      const drop = document.createElement("i");
+      drop.className = "spill-drop";
+      const dot = 6 + Math.random() * 5;
+      drop.style.width = `${dot}px`;
+      drop.style.height = `${dot}px`;
+      stage.appendChild(drop);
+      const dx = target.x - mx;
+      const dy = target.y - my;
+      drop.animate([
+        { transform: `translate(${mx}px, ${my - 20}px)`, opacity: 1 },
+        { transform: `translate(${mx + dx * 0.55}px, ${my + Math.min(dy, 0) - 70}px)`, opacity: 1, offset: 0.5 },
+        { transform: `translate(${target.x}px, ${target.y}px) scale(.6)`, opacity: 0.9 }
+      ], { duration: 480 + Math.random() * 260, delay: index * 35, easing: "ease-out", fill: "both" }).onfinish = () => {
+        drop.remove();
+        land();
+      };
+    });
   }
 
   function binArt() {
@@ -256,6 +374,7 @@ export function Desk({ dark, onToggleTheme }) {
   function sweepIntoBin(bin, list) {
     bin.shaking = true;
     binArt()?.classList.add("rattle");
+    playSweep();
     let left = list.length;
     const done = (entry, el) => {
       if (entry._gone) return;
@@ -299,6 +418,7 @@ export function Desk({ dark, onToggleTheme }) {
     if (!list.length) return;
     bin.shaking = true;
     binArt()?.classList.add("rattle");
+    playRestore();
     list.forEach((entry, index) => {
       entry.inBin = false;
       entry.swept = false;
@@ -340,8 +460,14 @@ export function Desk({ dark, onToggleTheme }) {
     setQuery("");
     setCategory("Everything");
     setBrowseOpen(false);
+    coffeeRef.current = false;
     setSpills([]);
-    if (keepOrganized) {
+    if (window.innerWidth < 720) {
+      const laid = organize(itemsRef.current, true);
+      setLabels(laid.labels);
+      setHeight(laid.height);
+      setOrganized(true);
+    } else if (keepOrganized) {
       const laid = organize(itemsRef.current, false);
       setLabels(laid.labels);
       setHeight(laid.height);
@@ -439,11 +565,13 @@ export function Desk({ dark, onToggleTheme }) {
           }}>Resume</button>
           <button type="button" onClick={() => showTour(0)}>Quick tour</button>
         </div>
-        <div id="stage" ref={stageRef} style={{ width: basis, height, transform: `scale(${scale})` }}>
+        <div id="stage" ref={stageRef} style={{ width: stageW, height, transform: `scale(${scale})` }}>
           {labels.map((label) => (
             <div key={label.id} className={label.kind} style={{ left: label.x, top: label.y }}>{label.text}</div>
           ))}
-          {spills.map((spill) => <i key={spill.id} className="spill" style={{ left: spill.x, top: spill.y, width: spill.w, height: spill.h }} />)}
+          {spills.filter((spill) => !spill.itemId).map((spill) => (
+            <i key={spill.id} className="spill" style={{ left: spill.x, top: spill.y, width: spill.w, height: spill.h, transform: `rotate(${spill.rotate}deg)`, borderRadius: spill.radius }} />
+          ))}
           {itemsRef.current.map((item) => (
             <DeskObject
               key={item.id}
@@ -451,11 +579,13 @@ export function Desk({ dark, onToggleTheme }) {
               dark={dark}
               binCount={binCount}
               scaleRef={scaleRef}
+              stageWidthRef={stageWRef}
               heightRef={heightRef}
               arrangeRef={arrangeRef}
               layoutVersion={version}
               onOpen={openItem}
               onBinHover={onBinHover}
+              stains={spills.filter((spill) => spill.itemId === item.id)}
               onShake={onShake}
               onDrop={onDrop}
             />
@@ -479,6 +609,8 @@ export function Desk({ dark, onToggleTheme }) {
         arrange={arrange}
         onArrange={() => setArrange((value) => !value)}
         narrow={narrow}
+        soundOn={soundOn}
+        onSound={() => setSoundOn(toggleSound())}
       />
       <Drawer
         open={browseOpen}

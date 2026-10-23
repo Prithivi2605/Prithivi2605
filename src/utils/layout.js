@@ -73,8 +73,18 @@ export function organize(items, narrow) {
   }
 
   items.forEach((item) => {
+    if (item.id === "mug") return;
     if (item.cat === "Decor" && !item.themeLamp && !item.isDustbin) item.off = true;
   });
+
+  const mug = items.find((item) => item.id === "mug");
+  if (mug) {
+    mug.off = false;
+    mug.r = narrow ? -6 : 8;
+    mug.x = narrow ? x0 : 1288;
+    mug.y = bin ? bin.y + (narrow ? 8 : 0) : y;
+    if (!narrow) mug.y = 72;
+  }
 
   return { labels, height: Math.max(bottom, narrow ? y + 220 : 1510) };
 }

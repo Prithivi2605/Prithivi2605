@@ -1,4 +1,5 @@
-import { activeProjects, portfolio } from "../data/portfolio.js";
+import { activeProjects, portfolio, skillWord } from "../data/portfolio.js";
+import { certImage } from "../utils/certImage.js";
 
 function Eyes({ y }) {
   return (
@@ -280,8 +281,7 @@ export function ObjectFace({ item, dark, binCount }) {
         <div className="tape" />
         <div className="face"><div className="skcard pp">
           <b>Skills</b>
-          <div className="skill-lines">✓ Java ✓ JavaScript ✓ Python<br />✓ React.js ✓ Node.js ✓ MySQL<br />✓ Git ✓ ASP.NET MVC</div>
-          <div className="skill-more">+ the rest, grouped below</div>
+          <div className="skill-lines">✓ Frontend<br />✓ Backend<br />✓ Database<br />✓ Fundamentals</div>
         </div></div>
       </>
     );
@@ -296,13 +296,22 @@ export function ObjectFace({ item, dark, binCount }) {
     return (
       <div className="face"><div className="skl" style={{ "--c": item.skill.color }}>
         <Mark skill={item.skill} />
-        <div><span className="skill-name">{item.skill.name}</span><span className="skill-cat">{item.skill.group}</span></div>
+        <div><span className="skill-name">{item.skill.name}</span><span className="skill-cat">{skillWord(item.skill.name)}</span></div>
       </div></div>
     );
   }
   if (item.kind === "cert") {
     const cert = portfolio.certifications.find((entry) => entry.id === item.certId);
     if (!cert) return null;
+    const photo = certImage(cert);
+    if (photo) {
+      return (
+        <>
+          <i className="clip" />
+          <div className="face"><div className="cert cert-photo"><img src={photo} alt={cert.title} /></div></div>
+        </>
+      );
+    }
     return (
       <>
         <i className="clip" />

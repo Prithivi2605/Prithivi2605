@@ -14,7 +14,8 @@
 #hero { z-index: 80; max-width: calc(100% - 16px); }
 
 .obj { touch-action: pan-y; }
-body.arrange .obj { touch-action: none; }
+body.arrange .obj, #obj-mug, #obj-dustbin { touch-action: none; }
+.skcard .skill-lines { white-space: normal; }
 
 #panel.open {
   display: flex;
@@ -146,6 +147,10 @@ body.arrange .obj { touch-action: none; }
   padding: 10px 12px;
 }
 .message-form textarea { min-height: 120px; resize: vertical; }
+.cert-photo { padding: 0; background: #fbf6e7; }
+.cert-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cert-view { display: block; width: min(100%, 640px); margin: 0 0 16px; border-radius: 6px; }
+.obj > .spill { z-index: 5; }
 .resume-note { padding: 0 28px 16px; }
 .sheet img { width: 100%; border-radius: 12px; }
 .status-pill {

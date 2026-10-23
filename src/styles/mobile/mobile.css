@@ -1,0 +1,50 @@
+@media (max-width: 720px) {
+  body {
+    overflow-x: auto;
+  }
+  #wrap {
+    overflow: visible;
+    max-width: none;
+  }
+  #hero {
+    top: 8px;
+    gap: 8px;
+    padding: 6px 8px 6px 12px;
+    white-space: normal;
+    justify-content: center;
+    text-align: center;
+  }
+  #hero b { font-size: 14px; }
+  #hero button { padding: 7px 10px; }
+  body.m #bReset,
+  body.m #bStory { display: inline-flex; }
+  body.m #bOrg { display: none; }
+  .tb {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    transform: none;
+    width: auto;
+    max-width: calc(100vw - 16px);
+    flex-wrap: wrap;
+    justify-content: center;
+    border-radius: 16px;
+  }
+  .tb button { padding: 8px 10px; font-size: 12px; }
+  .tb label { min-width: 0; flex: 1 1 150px; }
+  .tb input { width: 100%; min-width: 0; }
+  .drawer { width: min(280px, calc(100vw - 24px)); }
+  #panel.open:not(.bin-open) {
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .sheet { padding: 22px 16px; }
+  .message-form input,
+  .message-form select,
+  .message-form textarea { font-size: 16px; }
+  .vb.pg { padding: 12px; }
+  #binToast { top: 12px; }
+  .obj { touch-action: manipulation; }
+}

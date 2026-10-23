@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { activeProjects, portfolio } from "../data/portfolio.js";
+import { activeProjects, portfolio, skillWord } from "../data/portfolio.js";
+import { certImage } from "../utils/certImage.js";
 import { ObjectFace } from "./ObjectFace.jsx";
 
 function isHttp(value) {
@@ -66,7 +67,7 @@ export function viewerTitle(item) {
 
 export function viewerKind(item) {
   if (item.viewer === "project") return "Project";
-  if (item.viewer === "skill") return `Skill · ${item.skill.group}`;
+  if (item.viewer === "skill") return skillWord(item.skill.name);
   return {
     about: "About",
     resume: "Resume",
@@ -173,6 +174,7 @@ function CertViewer({ id }) {
   return (
     <div className="vb pg">
       <div className="sheet">
+        {certImage(cert) ? <img className="cert-view" src={certImage(cert)} alt={cert.title} /> : null}
         <h3>{cert.title}</h3>
         <p>{[cert.issuer, cert.year].filter(Boolean).join(" · ")}</p>
       </div>

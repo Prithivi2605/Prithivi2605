@@ -1,4 +1,11 @@
 /** Edit this file to update the desk and the viewers. Leave a string empty when you do not have that detail yet. */
+
+export function skillWord(name) {
+  if (name === "React.js") return "Frontend";
+  if (["Node.js", "Express.js", "ASP.NET MVC", "REST APIs"].includes(name)) return "Backend";
+  if (name === "MySQL" || name === "MongoDB" || name.includes("Database Management")) return "Database";
+  return "Fundamentals";
+}
 export const portfolio = {
   name: "Prithiviraj B",
   role: "Full-Stack Developer | Web Developer",

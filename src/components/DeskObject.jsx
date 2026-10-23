@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef } from "react";
 import { DESK_W, MESSY_H } from "../utils/layout.js";
+import { playDrop, playHover, playLift, slideMove, slideStart, slideStop } from "../utils/sfx.js";
 import { ObjectFace } from "./ObjectFace.jsx";
 
-export function DeskObject({ item, dark, binCount, scaleRef, heightRef, arrangeRef, layoutVersion, onOpen, onBinHover, onShake, onDrop }) {
+export function DeskObject({ item, dark, binCount, scaleRef, stageWidthRef, heightRef, arrangeRef, layoutVersion, stains = [], onOpen, onBinHover, onShake, onDrop }) {
   const ref = useRef(null);
   const drag = useRef(null);
   const shakeRef = useRef({ ax: { d: 0, seg: 0, opp: 0 }, ay: { d: 0, seg: 0, opp: 0 }, last: null, rev: [], cool: 0 });
@@ -29,11 +30,11 @@ export function DeskObject({ item, dark, binCount, scaleRef, heightRef, arrangeR
   function onPointerDown(event) {
     if (item.off) return;
     const touch = event.pointerType === "touch" || event.pointerType === "pen";
-    if (touch && !arrangeRef.current) {
+    if (touch && !arrangeRef.current && item.id !== "mug" && !item.isDustbin) {
       drag.current = { tap: true, x: event.clientX, y: event.clientY };
       return;
     }
-    if (item.isDustbin) {
+    if (item.isDustbin || item.id === "mug") {
       shakeRef.current.last = { x: event.clientX, y: event.clientY };
       shakeRef.current.rev = [];
       shakeRef.current.ax = { d: 0, seg: 0, opp: 0 };
@@ -59,28 +60,28 @@ export function DeskObject({ item, dark, binCount, scaleRef, heightRef, arrangeR
   function onPointerMove(event) {
     const state = drag.current;
     if (!state || state.tap || state.pid !== event.pointerId) return;
-    if (item.isDustbin) noteShake(event, state);
+    if (item.isDustbin) noteShake(event, state, { seg: 45, opp: 14, count: 6, window: 1000 });
+    if (item.id === "mug") noteShake(event, state, { seg: 40, opp: 12, count: 5, window: 900 });
     const dx = event.clientX - state.x;
     const dy = event.clientY - state.y;
     if (!state.moved && Math.hypot(dx, dy) < 5) return;
     if (!state.moved) {
       state.moved = true;
+      playLift(item);
+      slideStart(item);
       ref.current.classList.add("drag");
       ref.current.style.zIndex = "9000";
     }
+    slideMove(Math.hypot(dx, dy));
     const scale = scaleRef.current || 1;
+    const limitW = stageWidthRef?.current || DESK_W;
     const limitH = heightRef.current || MESSY_H;
-    const x = Math.max(-20, Math.min(DESK_W - item.w + 20, state.ox + dx / scale));
+    const x = Math.max(-20, Math.min(limitW - item.w + 20, state.ox + dx / scale));
     const y = Math.max(-20, Math.min(limitH - item.h + 20, state.oy + dy / scale));
     item.x = x;
     item.y = y;
     paint(x, y, item.r, true);
     if (!item.isDustbin && !item.themeLamp) onBinHover(item, true);
-    if (item.id === "mug") {
-      const sign = Math.sign(dx) || state.lastDx;
-      if (state.lastDx && sign !== state.lastDx) state.flips += 1;
-      state.lastDx = sign;
-    }
     state.x = event.clientX;
     state.y = event.clientY;
     state.ox = x;
@@ -95,6 +96,7 @@ export function DeskObject({ item, dark, binCount, scaleRef, heightRef, arrangeR
       if (Math.hypot(event.clientX - state.x, event.clientY - state.y) < 12) onOpen(item);
       return;
     }
+    slideStop();
     ref.current.classList.remove("drag");
     paint(item.x, item.y, item.r, false);
     ref.current.style.zIndex = String(item.z);
@@ -102,20 +104,21 @@ export function DeskObject({ item, dark, binCount, scaleRef, heightRef, arrangeR
       onOpen(item);
       return;
     }
+    const droppedIn = item.overBin;
     onBinHover(item, false);
     onDrop(item);
-    if (item.id === "mug" && state.flips >= 4) onShake(item);
+    if (!droppedIn) playDrop(item);
   }
 
-  function noteShake(event, state) {
+  function noteShake(event, state, limits) {
     const sh = shakeRef.current;
     if (!sh.last) return;
     const now = performance.now();
-    feed(sh.ax, event.clientX - sh.last.x, now, sh);
-    feed(sh.ay, event.clientY - sh.last.y, now, sh);
+    feed(sh.ax, event.clientX - sh.last.x, now, sh, limits);
+    feed(sh.ay, event.clientY - sh.last.y, now, sh, limits);
     sh.last = { x: event.clientX, y: event.clientY };
-    sh.rev = sh.rev.filter((time) => now - time <= 1000);
-    if (sh.rev.length >= 6 && now > sh.cool) {
+    sh.rev = sh.rev.filter((time) => now - time <= limits.window);
+    if (sh.rev.length >= limits.count && now > sh.cool) {
       sh.rev = [];
       sh.cool = now + 1200;
       state.moved = true;
@@ -140,7 +143,8 @@ export function DeskObject({ item, dark, binCount, scaleRef, heightRef, arrangeR
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={finish}
-      onPointerCancel={() => { drag.current = null; ref.current?.classList.remove("drag"); onBinHover(item, false); }}
+      onPointerCancel={() => { slideStop(); drag.current = null; ref.current?.classList.remove("drag"); onBinHover(item, false); }}
+      onMouseEnter={() => playHover(item)}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
@@ -149,12 +153,15 @@ export function DeskObject({ item, dark, binCount, scaleRef, heightRef, arrangeR
       }}
     >
       <ObjectFace item={item} dark={dark} binCount={binCount} />
+      {stains.map((stain) => (
+        <i key={stain.id} className="spill" style={{ left: stain.x, top: stain.y, width: stain.w, height: stain.h, transform: `rotate(${stain.rotate}deg)`, borderRadius: stain.radius }} />
+      ))}
       <div className="tip">{item.name}</div>
     </div>
   );
 }
 
-function feed(axis, delta, now, shake) {
+function feed(axis, delta, now, shake, limits) {
   if (!delta) return;
   const sign = delta > 0 ? 1 : -1;
   const amount = Math.abs(delta);
@@ -169,8 +176,8 @@ function feed(axis, delta, now, shake) {
     return;
   }
   axis.opp += amount;
-  if (axis.opp >= 14) {
-    if (axis.seg >= 45) shake.rev.push(now);
+  if (axis.opp >= limits.opp) {
+    if (axis.seg >= limits.seg) shake.rev.push(now);
     axis.d = sign;
     axis.seg = axis.opp;
     axis.opp = 0;
