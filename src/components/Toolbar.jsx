@@ -28,6 +28,9 @@ export function Toolbar({
           onClearQuery();
           event.currentTarget.blur();
         }} />
+        {/sound/i.test(query) && (
+          <button type="button" id="bSfx" aria-pressed={soundOn} onClick={onSound}>{soundOn ? "Sound on" : "Sound off"}</button>
+        )}
       </label>
       {showMove && (
         <button type="button" id="bArrange" aria-pressed={arrange} onClick={onArrange}>{arrange ? "Done moving" : "Move items"}</button>
@@ -37,7 +40,6 @@ export function Toolbar({
         <button type="button" id="bOrg" className={organized ? "on" : ""} onClick={onOrganize}>{organized ? "Messy mode" : "Organize"}</button>
       )}
       <button type="button" id="bSk" onClick={onSkills}>Skills</button>
-      <button type="button" id="bSfx" aria-pressed={soundOn} onClick={onSound}>{soundOn ? "Sound on" : "Sound off"}</button>
       <button type="button" id="bStory" onClick={onTour}>Quick tour</button>
     </div>
   );

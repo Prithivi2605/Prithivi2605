@@ -595,7 +595,7 @@ export function Desk({ dark, onToggleTheme }) {
 
       <Toolbar
         query={query}
-        onQuery={(value) => { setQuery(value); applyFilter(value, category); }}
+        onQuery={(value) => { setQuery(value); applyFilter(value.replace(/sound/ig, " "), category); }}
         onClearQuery={() => { setQuery(""); applyFilter("", category); }}
         browseOpen={browseOpen}
         filtering={category !== "Everything"}
